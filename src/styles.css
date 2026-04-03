@@ -135,4 +135,13 @@
   button:disabled {
     cursor: not-allowed;
   }
+
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  app-summary, app-summary-view {
+    display: block;
+  }
 }

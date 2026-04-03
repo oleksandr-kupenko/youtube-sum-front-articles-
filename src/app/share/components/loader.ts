@@ -11,6 +11,7 @@ const SIZE: Record<LoaderSize, { ring: number; icon: number }> = {
 @Component({
   selector: 'app-loader',
   host: { class: 'flex flex-col items-center gap-4' },
+  standalone: true,
   template: `
     <div class="loader-ring" [style.width.px]="dim().ring" [style.height.px]="dim().ring">
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">

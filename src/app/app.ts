@@ -1,11 +1,11 @@
-import { Component, inject, signal, viewChild, AfterViewInit } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from './services/theme.service';
-import { LoaderComponent } from './share/components/loader';
+import {AfterViewInit, Component, inject, signal, viewChild} from '@angular/core';
+import {RouterLink, RouterOutlet} from '@angular/router';
+import {ThemeService} from './services/theme.service';
+import {LoaderComponent} from './share/components/loader';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LoaderComponent],
+  imports: [RouterOutlet, RouterLink, LoaderComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
