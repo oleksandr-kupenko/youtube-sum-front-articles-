@@ -1,0 +1,209 @@
+@if (svc.initPhase() === 'loading') {
+  <div class="flex flex-col items-center gap-4 py-20">
+    <div class="w-10 h-10 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-[var(--color-fg-muted)] text-sm">Loading...</p>
+  </div>
+} @else {
+  <!-- Unified tabs row: Full / Medium / Brief ... Subtitles -->
+  <div class="flex items-end mb-6 border-b border-[var(--color-border)]">
+    @for (tab of lengthTabs; track tab.id) {
+      <button
+        (click)="switchTab(tab.id)"
+        class="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors -mb-px"
+        [class.tab-active]="activeTab() === tab.id"
+        [class.border-b-2]="activeTab() === tab.id"
+        [class.border-red-500]="activeTab() === tab.id"
+        [class.tab-inactive]="activeTab() !== tab.id"
+      >
+        {{ tab.label }}
+        @if (svc.variants()[tab.id] && svc.variants()[tab.id] !== 'loading') {
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd"/>
+          </svg>
+        }
+      </button>
+    }
+    <button
+      (click)="switchTab('subtitles')"
+      class="ml-auto px-4 py-2 text-sm font-medium transition-colors -mb-px"
+      [class.tab-active]="activeTab() === 'subtitles'"
+      [class.border-b-2]="activeTab() === 'subtitles'"
+      [class.border-gray-500]="activeTab() === 'subtitles'"
+      [class.tab-inactive]="activeTab() !== 'subtitles'"
+    >Subtitles</button>
+  </div>
+
+  <!-- Subtitles view (always shows snippets, same for all lengths) -->
+  @if (activeTab() === 'subtitles') {
+    <app-summary-view
+      [showSubtitles]="true"
+      [text]="''"
+      [snippets]="svc.snippets()"
+      [videoId]="svc.videoId()"
+      [videoUrl]="svc.videoUrl()"
+      [visualHighlights]="false"
+      [visualTimecodes]="[]"
+      [visualState]="'idle'"
+      [isStreaming]="false"
+      [videoDuration]="svc.videoDuration()"
+      [videoPublishedAt]="svc.videoPublishedAt()"
+      [articleCreatedAt]="svc.articleCreatedAt()"
+      [previewImage]="svc.previewImage()"
+      [articleLang]="svc.lang()"
+      [sourceLang]="svc.sourceLang()"
+      (reset)="svc.newVideo()"
+      (generateHighlights)="svc.generateVisualHighlights()"
+    />
+  }
+
+  <!-- Length tab content -->
+  @else {
+    <!-- State D: streaming -->
+    @if (svc.activeVariant() === 'loading') {
+      <app-summary-view
+        [showSubtitles]="false"
+        [text]="svc.streamingText()"
+        [snippets]="svc.snippets()"
+        [videoId]="svc.videoId()"
+        [videoUrl]="svc.videoUrl()"
+        [visualHighlights]="svc.visualHighlightsEnabled()"
+        [visualTimecodes]="svc.visualTimecodes()"
+        [visualState]="svc.visualState()"
+        [isStreaming]="true"
+        [videoDuration]="svc.videoDuration()"
+        [videoPublishedAt]="svc.videoPublishedAt()"
+        [articleCreatedAt]="svc.articleCreatedAt()"
+        [previewImage]="svc.previewImage()"
+        [articleLang]="svc.lang()"
+        [sourceLang]="svc.sourceLang()"
+        (reset)="svc.newVideo()"
+      (generateHighlights)="svc.generateVisualHighlights()"
+      />
+    }
+
+    <!-- State A: quality content -->
+    @else if (svc.activeVariant() !== null && !$any(svc.activeVariant())?.isSpeed) {
+      <app-summary-view
+        [showSubtitles]="false"
+        [text]="svc.variantToMarkdown($any(svc.activeVariant()))"
+        [snippets]="svc.snippets()"
+        [videoId]="svc.videoId()"
+        [videoUrl]="svc.videoUrl()"
+        [visualHighlights]="svc.visualHighlightsEnabled()"
+        [visualTimecodes]="svc.visualTimecodes()"
+        [visualState]="svc.visualState()"
+        [isStreaming]="false"
+        [videoDuration]="svc.videoDuration()"
+        [videoPublishedAt]="svc.videoPublishedAt()"
+        [articleCreatedAt]="svc.articleCreatedAt()"
+        [previewImage]="svc.previewImage()"
+        [articleLang]="svc.lang()"
+        [sourceLang]="svc.sourceLang()"
+        (reset)="svc.newVideo()"
+      (generateHighlights)="svc.generateVisualHighlights()"
+      />
+    }
+
+    <!-- State B: speed content + regenerate -->
+    @else if (svc.activeVariant() !== null && $any(svc.activeVariant())?.isSpeed) {
+      <div class="flex items-center gap-3 mb-4">
+        <span class="speed-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border">
+          ⚡ Speed
+        </span>
+        <button
+          (click)="svc.regenerate()"
+          class="text-xs text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] border border-[var(--color-border)] hover:border-[var(--color-fg-muted)] px-3 py-1 rounded-lg transition-colors"
+        >Regenerate in Quality</button>
+      </div>
+      <app-summary-view
+        [showSubtitles]="false"
+        [text]="svc.variantToMarkdown($any(svc.activeVariant()))"
+        [snippets]="svc.snippets()"
+        [videoId]="svc.videoId()"
+        [videoUrl]="svc.videoUrl()"
+        [visualHighlights]="svc.visualHighlightsEnabled()"
+        [visualTimecodes]="svc.visualTimecodes()"
+        [visualState]="svc.visualState()"
+        [isStreaming]="false"
+        [videoDuration]="svc.videoDuration()"
+        [videoPublishedAt]="svc.videoPublishedAt()"
+        [articleCreatedAt]="svc.articleCreatedAt()"
+        [previewImage]="svc.previewImage()"
+        [articleLang]="svc.lang()"
+        [sourceLang]="svc.sourceLang()"
+        (reset)="svc.newVideo()"
+      (generateHighlights)="svc.generateVisualHighlights()"
+      />
+    }
+
+    <!-- State C: not generated yet -->
+    @else {
+      @if (svc.error(); as err) {
+        @if (err.isVideoIssue) {
+          <div class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-8 text-center">
+            <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z" />
+              </svg>
+            </div>
+            <p class="text-[var(--color-fg)] font-semibold mb-2">Subtitles unavailable for this video</p>
+            <p class="text-[var(--color-fg-muted)] text-sm mb-5">{{ err.message }}</p>
+            <p class="text-[var(--color-fg-muted)] text-xs mb-6 opacity-70">This is a restriction set by the video author or YouTube, not a problem with the service.</p>
+            <button (click)="svc.newVideo()" class="px-4 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-sm transition-colors">Try another video</button>
+          </div>
+        } @else if (err.isRateLimit) {
+          <div class="rounded-xl bg-[var(--color-surface)] border border-yellow-800/50 p-8 text-center">
+            <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+              </svg>
+            </div>
+            <p class="text-yellow-600 font-semibold mb-1">YouTube is rate-limiting translations</p>
+            <p class="text-[var(--color-fg-muted)] text-sm mb-5">{{ err.message }}</p>
+            @if (svc.retryCountdown() > 0) {
+              <p class="text-[var(--color-fg-muted)] text-xs mb-4 opacity-70">Auto-retrying in {{ svc.retryCountdown() }}s...</p>
+            }
+            <div class="flex flex-wrap gap-3 justify-center mb-4">
+              <button
+                (click)="svc.retryNow()"
+                [disabled]="svc.retryButtonCountdown() > 0"
+                class="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+              >
+                @if (svc.retryButtonCountdown() > 0) { Retry now ({{ svc.retryButtonCountdown() }}s) }
+                @else { Retry now }
+              </button>
+              @if (svc.canRetryWithNative) {
+                <button
+                  (click)="svc.retryWithNativeLang()"
+                  class="px-4 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-sm transition-colors"
+                >Use native subtitles + AI translate</button>
+              }
+            </div>
+            <button (click)="svc.newVideo()" class="text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] text-xs transition-colors opacity-60 hover:opacity-100">Cancel</button>
+          </div>
+        } @else {
+          <app-error-block [message]="err.message">
+            <div class="flex gap-3 justify-center">
+              <button (click)="svc.generate('quality')" class="px-4 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-sm transition-colors">✦ Retry Quality</button>
+              <button (click)="svc.generate('speed')" class="px-4 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-sm transition-colors">⚡ Retry Speed</button>
+            </div>
+          </app-error-block>
+        }
+      } @else {
+        <div class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-10 text-center">
+          <p class="text-[var(--color-fg-muted)] mb-6 text-sm">This length hasn't been generated yet.</p>
+          <div class="flex gap-3 justify-center">
+            <button
+              (click)="svc.generate('speed')"
+              class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-sm font-medium transition-colors"
+            >⚡ Speed</button>
+            <button
+              (click)="svc.generate('quality')"
+              class="flex items-center gap-2 px-5 py-2.5 rounded-lg btn-cta text-sm font-medium transition-colors"
+            >✦ Quality</button>
+          </div>
+        </div>
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular app
+        run: npm run build -- --configuration production
+
+      - name: Prepare server directories
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            rm -rf /home/unwatched.click/app/browser
+            rm -rf /home/unwatched.click/app/server
+            mkdir -p /home/unwatched.click/app
+
+      - name: Upload browser assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "dist/youtube-viewer/browser/"
+          target: "/home/unwatched.click/app/browser/"
+          strip_components: 3
+
+      - name: Upload server bundle
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "dist/youtube-viewer/server/"
+          target: "/home/unwatched.click/app/server/"
+          strip_components: 3
+
+      - name: Upload package files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "package.json,package-lock.json"
+          target: "/home/unwatched.click/app/"
+
+      - name: Install deps & restart SSR
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/unwatched.click/app
+            npm ci --omit=dev
+            pm2 reload /home/unwatched.click/ecosystem.config.cjs --update-env \
+              || pm2 start /home/unwatched.click/ecosystem.config.cjs
+            pm2 save

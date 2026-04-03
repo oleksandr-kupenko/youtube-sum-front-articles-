@@ -1,0 +1,276 @@
+<!-- ===== HEADER ===== -->
+<div class="mb-8 pb-8 border-b border-[var(--color-border)]">
+  <h1 class="text-2xl font-bold mb-1">YouTube Summarized Articles</h1>
+  <p class="text-[var(--color-fg-muted)] text-sm">Browse AI-generated summaries of YouTube videos</p>
+</div>
+
+<!-- ===== FILTERS ===== -->
+
+<!-- Categories -->
+@if (svc.categories().length > 0) {
+  <div class="mb-5">
+    <p class="text-xs text-[var(--color-fg-muted)] uppercase tracking-widest mb-2">Topic</p>
+    <div class="flex flex-wrap gap-2">
+      <!-- All -->
+      <button
+        (click)="setCategory(null)"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-all"
+        [ngClass]="svc.selectedCategory() === null ? 'filter-btn-active' : 'filter-btn-base'"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+        </svg>
+        All topics
+      </button>
+
+      @for (cat of svc.categories(); track cat.slug) {
+        <button
+          (click)="setCategory(cat.slug)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-all"
+          [ngClass]="svc.selectedCategory() === cat.slug ? 'filter-btn-active' : 'filter-btn-base'"
+        >
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="categoryIcon(cat.slug)" />
+          </svg>
+          {{ cat.label }}
+          <span class="text-xs opacity-50">({{ cat.count }})</span>
+        </button>
+      }
+    </div>
+  </div>
+}
+
+<!-- Language filter -->
+<div class="mb-5">
+  <p class="text-xs text-[var(--color-fg-muted)] uppercase tracking-widest mb-2">Language</p>
+  <div class="flex flex-wrap gap-2">
+    <button
+      (click)="setLang(null)"
+      class="px-3 py-1.5 rounded-lg border text-sm transition-all"
+      [ngClass]="svc.selectedLang() === null ? 'filter-btn-active' : 'filter-btn-base'"
+    >Any</button>
+
+    @for (lang of popularLangs; track lang) {
+      <button
+        (click)="setLang(lang)"
+        class="px-3 py-1.5 rounded-lg border text-sm transition-all"
+        [ngClass]="svc.selectedLang() === lang ? 'filter-btn-active' : 'filter-btn-base'"
+      >{{ langLabel(lang) }}</button>
+    }
+
+    @if (extraLangs().length > 0) {
+      <select
+        (change)="setLang($any($event.target).value || null)"
+        class="px-3 py-1.5 rounded-lg border text-sm transition-colors focus:outline-none focus:border-indigo-500 filter-btn-base"
+      >
+        <option value="">More...</option>
+        @for (lang of extraLangs(); track lang) {
+          <option [value]="lang" [selected]="svc.selectedLang() === lang">{{ langLabel(lang) }}</option>
+        }
+      </select>
+    }
+  </div>
+</div>
+
+<!-- Date filter (article generated) -->
+<div class="mb-5">
+  <p class="text-xs text-[var(--color-fg-muted)] uppercase tracking-widest mb-2">Generated</p>
+  <div class="flex flex-wrap gap-2">
+    @for (range of dateRanges; track range.id) {
+      <button
+        (click)="setDate(range.id)"
+        class="px-3 py-1.5 rounded-lg border text-sm transition-all"
+        [ngClass]="svc.selectedDate() === range.id ? 'filter-btn-active' : 'filter-btn-base'"
+      >{{ range.label }}</button>
+    }
+  </div>
+</div>
+
+<!-- Video published date filter -->
+<div class="mb-7">
+  <p class="text-xs text-[var(--color-fg-muted)] uppercase tracking-widest mb-2">Video published</p>
+  <div class="flex flex-wrap gap-2">
+    @for (range of dateRanges; track range.id) {
+      <button
+        (click)="setVideoDate(range.id)"
+        class="px-3 py-1.5 rounded-lg border text-sm transition-all"
+        [ngClass]="svc.selectedVideoDate() === range.id ? 'filter-btn-active' : 'filter-btn-base'"
+      >{{ range.label }}</button>
+    }
+  </div>
+</div>
+
+<!-- ===== ARTICLE GRID ===== -->
+
+@if (svc.error()) {
+  <app-error-block [message]="svc.error()!">
+    <button (click)="svc.loadArticles()" class="px-4 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-sm transition-colors">Retry</button>
+  </app-error-block>
+} @else if (svc.loading() && svc.articles().length === 0) {
+  <!-- Initial loading skeleton -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+      <div class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse">
+        <div class="aspect-video bg-[var(--color-surface-hover)] rounded-t-xl"></div>
+        <div class="p-4 space-y-2">
+          <div class="h-4 bg-[var(--color-surface-hover)] rounded w-3/4"></div>
+          <div class="h-3 bg-[var(--color-surface-hover)] rounded w-full"></div>
+          <div class="h-3 bg-[var(--color-surface-hover)] rounded w-2/3"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (svc.articles().length === 0) {
+  <div class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-12 text-center">
+    <svg class="w-10 h-10 mx-auto text-[var(--color-fg-muted)] mb-4 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+    </svg>
+    <p class="text-[var(--color-fg-muted)] text-sm">No articles found for these filters.</p>
+    <button (click)="clearFilters()" class="mt-4 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-sm transition-colors">Clear filters</button>
+  </div>
+} @else {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (article of svc.articles(); track article.id) {
+      <a
+        [routerLink]="['/summary']"
+        [queryParams]="articleQueryParams(article)"
+        class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-fg-muted)] overflow-hidden flex flex-col transition-colors group"
+      >
+        <!-- Preview image -->
+        <div class="aspect-video bg-[var(--color-surface-hover)] overflow-hidden shrink-0 relative">
+          <img
+            [src]="previewUrl(article)"
+            [alt]="article.title ?? article.videoTitle"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            onerror="this.src='https://img.youtube.com/vi/' + this.src.split('/vi/')[1]?.split('/')[0] + '/hqdefault.jpg'"
+          />
+          @if (article.videoDuration) {
+            <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+              {{ formatDuration(article.videoDuration) }}
+            </span>
+          }
+        </div>
+
+        <div class="p-4 flex flex-col gap-2 flex-1">
+          <!-- Category badges -->
+          @if (article.categories.length > 0) {
+            <div class="flex flex-wrap gap-1">
+              @for (cat of article.categories.slice(0, 3); track cat.slug) {
+                <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] text-[var(--color-fg-muted)] border border-[var(--color-border)]">{{ cat.label }}</span>
+              }
+            </div>
+          }
+
+          <!-- Title -->
+          <h2 class="text-sm font-semibold text-[var(--color-fg)] line-clamp-2 group-hover:text-[var(--color-fg)] transition-colors">
+            {{ article.title ?? article.videoTitle }}
+          </h2>
+
+          <!-- Intro excerpt -->
+          @if (article.intro) {
+            <p class="text-xs text-[var(--color-fg-muted)] line-clamp-3 leading-relaxed">{{ article.intro }}</p>
+          }
+
+          <!-- Footer: lang + dates -->
+          <div class="mt-auto flex items-center justify-between gap-2 pt-1">
+            <span class="lang-chip text-xs font-medium px-1.5 py-0.5 rounded border uppercase">
+              {{ article.articleLang }}
+            </span>
+            <div class="flex flex-col items-end gap-0.5">
+              @if (article.videoPublishedAt) {
+                <span class="flex items-center gap-1 text-xs text-[var(--color-fg-muted)]" tooltip="Video published">
+                  <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                  </svg>
+                  {{ formatDate(article.videoPublishedAt) }}
+                </span>
+              }
+              <span class="flex items-center gap-1 text-xs text-[var(--color-fg-muted)] opacity-60" tooltip="Article generated">
+                <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                {{ formatDate(article.createdAt) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+    }
+  </div>
+
+  <!-- ===== DESKTOP PAGINATION (hidden on mobile) ===== -->
+  @if (svc.totalPages() > 1) {
+    <div class="hidden sm:flex justify-center items-center gap-1 mt-8 flex-wrap">
+
+      <!-- Prev -->
+      @if (svc.currentPage() > 1) {
+        <a
+          [routerLink]="[]"
+          [queryParams]="{ page: svc.currentPage() - 1 }"
+          queryParamsHandling="merge"
+          class="px-3 py-2 rounded-lg border text-sm transition-colors filter-btn-base"
+        >&larr;</a>
+      } @else {
+        <span class="px-3 py-2 rounded-lg border text-sm opacity-30 cursor-not-allowed filter-btn-base">&larr;</span>
+      }
+
+      <!-- Page numbers -->
+      @for (p of pageNumbers(); track $index) {
+        @if (p === '...') {
+          <span class="px-2 py-2 text-sm text-[var(--color-fg-muted)]">…</span>
+        } @else {
+          <a
+            [routerLink]="[]"
+            [queryParams]="{ page: p }"
+            queryParamsHandling="merge"
+            class="min-w-[2.25rem] px-3 py-2 rounded-lg border text-sm text-center transition-colors"
+            [ngClass]="svc.currentPage() === p ? 'filter-btn-active' : 'filter-btn-base'"
+          >{{ p }}</a>
+        }
+      }
+
+      <!-- Next -->
+      @if (svc.currentPage() < svc.totalPages()) {
+        <a
+          [routerLink]="[]"
+          [queryParams]="{ page: svc.currentPage() + 1 }"
+          queryParamsHandling="merge"
+          class="px-3 py-2 rounded-lg border text-sm transition-colors filter-btn-base"
+        >&rarr;</a>
+      } @else {
+        <span class="px-3 py-2 rounded-lg border text-sm opacity-30 cursor-not-allowed filter-btn-base">&rarr;</span>
+      }
+
+      <span class="ml-3 text-sm text-[var(--color-fg-muted)] opacity-50">{{ svc.total() }} articles</span>
+    </div>
+
+    <!-- SEO crawlable prev/next links (always in DOM, visually hidden) -->
+    <nav class="sr-only" aria-label="Article pages">
+      @if (svc.currentPage() > 1) {
+        <a [routerLink]="[]" [queryParams]="{ page: svc.currentPage() - 1 }" queryParamsHandling="merge">Previous page</a>
+      }
+      @if (svc.currentPage() < svc.totalPages()) {
+        <a [routerLink]="[]" [queryParams]="{ page: svc.currentPage() + 1 }" queryParamsHandling="merge">Next page</a>
+      }
+    </nav>
+  }
+
+  <!-- ===== MOBILE: loading more indicator ===== -->
+  @if (svc.loadingMore()) {
+    <div class="sm:hidden flex justify-center py-6">
+      <svg class="animate-spin h-6 w-6 text-[var(--color-fg-muted)]" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  }
+
+  <!-- Mobile: end of list -->
+  @if (!svc.hasMore() && !svc.loading() && !svc.loadingMore() && svc.total() > 0) {
+    <p class="sm:hidden text-center text-xs text-[var(--color-fg-muted)] py-4 opacity-40">All {{ svc.total() }} articles loaded</p>
+  }
+}
+
+<!-- Sentinel for IntersectionObserver (always in DOM) -->
+<div #sentinel class="h-2"></div>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#1a1a2e"/>
+
+  <!-- Play button (red, top area) -->
+  <rect x="5" y="5" width="22" height="14" rx="3" fill="#ff0000"/>
+  <polygon points="13,8.5 13,15.5 20,12" fill="white"/>
+
+  <!-- Summary lines (bottom area) -->
+  <rect x="5" y="22" width="22" height="2" rx="1" fill="#e0e0e0"/>
+  <rect x="5" y="26" width="15" height="2" rx="1" fill="#999"/>
+</svg>

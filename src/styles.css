@@ -1,0 +1,138 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "tailwindcss";
+
+:root {
+  color-scheme: light dark; /* default: follows system preference */
+
+  --color-bg:            light-dark(#f9fafb, #030712);
+  --color-fg:            light-dark(#111827, #f3f4f6);
+  --color-fg-muted:      light-dark(#6b7280, #9ca3af);
+  --color-border:        light-dark(#e5e7eb, #1f2937);
+  --color-surface:       light-dark(#ffffff, #111827);
+  --color-surface-hover: light-dark(#f3f4f6, #1f2937);
+}
+
+/* Filter pill buttons — inactive */
+.filter-btn-base {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-fg);
+}
+.filter-btn-base:hover {
+  background-color: var(--color-surface-hover);
+  border-color: light-dark(#9ca3af, #374151);
+}
+
+/* Filter pill buttons — active */
+.filter-btn-active {
+  background-color: light-dark(#eef2ff, rgba(67, 56, 202, 0.2));
+  border-color: light-dark(#818cf8, #4f46e5);
+  color: light-dark(#4338ca, #c7d2fe);
+  box-shadow: 0 0 0 1px light-dark(rgba(129, 140, 248, 0.4), rgba(79, 70, 229, 0.4));
+}
+
+/* Speed chip badge */
+.speed-chip {
+  background-color: light-dark(#fefce8, rgba(113, 63, 18, 0.4));  /* yellow-50 / yellow-900/40 */
+  border-color:     light-dark(#fde047, rgba(133, 77, 14, 0.5));  /* yellow-300 / yellow-800/50 */
+  color:            light-dark(#a16207, #facc15);                  /* yellow-700 / yellow-400 */
+}
+
+/* CTA button (Analyze) — slightly darker red in light mode to reduce harshness */
+.btn-cta {
+  background-color: light-dark(#b91c1c, #dc2626); /* red-700 / red-600 */
+  color: white;
+}
+.btn-cta:hover:not(:disabled) {
+  background-color: light-dark(#991b1b, #ef4444); /* red-800 / red-500 */
+}
+
+/* Language badge chip */
+.lang-chip {
+  background-color: light-dark(#e0e7ff, rgba(30, 27, 75, 0.4));    /* indigo-100 / indigo-950/40 */
+  border-color:     light-dark(#a5b4fc, rgba(55, 48, 163, 0.6));   /* indigo-300 / indigo-800/60 */
+  color:            light-dark(#4338ca, #818cf8);                   /* indigo-700 / indigo-400 */
+}
+
+/* Active nav link — overrides opacity-60 utility */
+.nav-link-active {
+  opacity: 1;
+}
+
+/* Quality badges */
+.quality-chip-high {
+  background-color: light-dark(#ecfdf5, rgba(6, 78, 59, 0.4));    /* emerald-50 / emerald-950/40 */
+  border-color:     light-dark(#6ee7b7, rgba(4, 120, 87, 0.6));   /* emerald-300 / emerald-800/60 */
+  color:            light-dark(#047857, #34d399);                 /* emerald-700 / emerald-400 */
+}
+
+.quality-chip-med-high {
+  background-color: light-dark(#eff6ff, rgba(30, 58, 138, 0.4));    /* blue-50 / blue-950/40 */
+  border-color:     light-dark(#93c5fd, rgba(30, 64, 175, 0.6));    /* blue-300 / blue-800/60 */
+  color:            light-dark(#1d4ed8, #60a5fa);                   /* blue-700 / blue-400 */
+}
+
+.quality-chip-med {
+  background-color: light-dark(#fefce8, rgba(113, 63, 18, 0.4));    /* yellow-50 / yellow-900/40 */
+  border-color:     light-dark(#fde047, rgba(133, 77, 14, 0.5));    /* yellow-300 / yellow-800/50 */
+  color:            light-dark(#a16207, #facc15);                   /* yellow-700 / yellow-400 */
+}
+
+.quality-chip-unsupported {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border);
+  color: var(--color-fg-muted);
+}
+
+/* Visual highlights (Purple theme) */
+.btn-purple-active {
+  background-color: light-dark(#faf5ff, rgba(88, 28, 135, 0.2));  /* fuchsia-50 / purple-900/20 */
+  border-color: light-dark(#d8b4fe, #7e22ce); /* purple-300 / purple-700 */
+  color: light-dark(#7e22ce, #d8b4fe); /* purple-700 / purple-300 */
+  box-shadow: 0 0 0 1px light-dark(rgba(216, 180, 254, 0.4), rgba(126, 34, 206, 0.4));
+}
+
+.beta-chip {
+  background-color: light-dark(#f3e8ff, rgba(88, 28, 135, 0.4)); /* purple-100 / purple-900/40 */
+  border-color:     light-dark(#d8b4fe, rgba(126, 34, 206, 0.5)); /* purple-300 / purple-700/50 */
+  color:            light-dark(#7e22ce, #d8b4fe); /* purple-700 / purple-300 */
+}
+
+.beta-on-chip {
+  background-color: light-dark(#e9d5ff, rgba(107, 33, 168, 0.6)); /* purple-200 / purple-800/60 */
+  color: light-dark(#6b21a8, #e9d5ff); /* purple-800 / purple-200 */
+}
+
+/* Error block */
+.error-block {
+  background-color: light-dark(#fef2f2, rgba(69, 10, 10, 0.5));  /* red-50 / red-950/50 */
+  border-color:     light-dark(#fca5a5, #991b1b);                 /* red-300 / red-800 */
+}
+
+.error-text {
+  color: light-dark(#b91c1c, #f87171); /* red-700 / red-400 */
+}
+
+/* Summary page tabs */
+.tab-active   { color: var(--color-fg); }
+.tab-inactive { color: var(--color-fg-muted); }
+
+/* Article prose — override hardcoded dark colors for theme compat */
+.prose-custom p,
+.prose-custom li > span:last-child {
+  color: var(--color-fg);
+}
+.prose-custom h3 {
+  color: var(--color-fg);
+}
+
+@layer base {
+  button, a, label, select, [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
