@@ -2,10 +2,10 @@ import { Component, input } from '@angular/core';
 
 export type LoaderSize = 'sm' | 'md' | 'lg';
 
-const SIZE: Record<LoaderSize, { ring: number; icon: number }> = {
-  sm: { ring: 48, icon: 18 },
-  md: { ring: 80, icon: 28 },
-  lg: { ring: 112, icon: 40 },
+const SIZE: Record<LoaderSize, number> = {
+  sm: 64,
+  md: 120,
+  lg: 150,
 };
 
 @Component({
@@ -13,57 +13,50 @@ const SIZE: Record<LoaderSize, { ring: number; icon: number }> = {
   host: { class: 'flex flex-col items-center gap-4' },
   standalone: true,
   template: `
-    <div class="loader-ring" [style.width.px]="dim().ring" [style.height.px]="dim().ring">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle class="track" cx="32" cy="32" r="28" stroke-width="3"/>
-        <circle class="spin"  cx="32" cy="32" r="28" stroke-width="3" stroke-linecap="round"/>
-      </svg>
-      <div class="play-icon" [style.width.px]="dim().icon" [style.height.px]="dim().icon">
-        <svg viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%">
-          <path d="M8 5.14v14l11-7-11-7z"/>
-        </svg>
-      </div>
+    <div class="loader" [style.--sz.px]="px()">
+      <div class="box-1"></div>
     </div>
 
     @if (label()) {
-      <p class="text-[var(--color-fg-muted)] text-sm tracking-wide">{{ label() }}</p>
+      <p class="loader-label">{{ label() }}</p>
     }
   `,
   styles: [`
-    .loader-ring {
+    .loader {
       position: relative;
-      flex-shrink: 0;
     }
-    .loader-ring svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
+
+    .box-1 {
+      position: relative;
+      height: var(--sz, 120px);
+      width: var(--sz, 120px);
+      background-color: #ffffff;
+      background-image: linear-gradient(135deg, #ffffff 0%, #6284ff 34%, #ff0000 100%);
+      border-radius: 50%;
+      animation: rotate 3s linear infinite;
+      box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px,
+                  rgba(17, 17, 26, 0.1) 0px 8px 24px,
+                  rgba(17, 17, 26, 0.1) 0px 16px 48px;
     }
-    .loader-ring .track {
-      stroke: color-mix(in srgb, #dc2626 15%, transparent);
+
+    @keyframes rotate {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    .loader-ring .spin {
-      stroke: #ef4444;
-      stroke-dasharray: 60 116;
-      animation: loader-spin 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
-    .play-icon {
+
+    .box-1::before {
+      content: '';
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ef4444;
-      animation: loader-pulse 1.4s ease-in-out infinite;
+      inset: 10%;
+      background: var(--color-bg, #f5f5f5);
+      border-radius: 50%;
     }
-    @keyframes loader-spin {
-      0%   { stroke-dashoffset: 0;    transform: rotate(0deg); }
-      50%  { stroke-dasharray: 90 86; }
-      100% { stroke-dashoffset: -176; transform: rotate(0deg); }
-    }
-    @keyframes loader-pulse {
-      0%, 100% { opacity: 1;    transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.85); }
+
+    .loader-label {
+      color: var(--color-fg-muted, #666);
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      text-align: center;
     }
   `],
 })
@@ -71,5 +64,5 @@ export class LoaderComponent {
   size  = input<LoaderSize>('md');
   label = input<string>('');
 
-  protected dim() { return SIZE[this.size()]; }
+  protected px() { return SIZE[this.size()]; }
 }
